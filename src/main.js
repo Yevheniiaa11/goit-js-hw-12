@@ -34,24 +34,29 @@ form.addEventListener("submit", async (event) => {
     page = 1;
     totalHits = 0;
     clearGallery();
+    hideLoadMoreButton(); 
     showLoader();
 
     try{
-        const { hits, totalHits }  = await getImagesByQuery(searchQuery, page);
+        const { hits, totalHits: fetchedTotalHits }  = await getImagesByQuery(searchQuery, page);
 
-    
-        console.log("Hits array:", hits);
-        console.log("Total hits:", totalHits);
+        console.log("Total hits:", fetchedTotalHits);
 
-        if (hits.length === 0) return;
+        totalHits = fetchedTotalHits;
+
+        if (hits.length === 0) {
+            iziToast.error({
+                title: "Error",
+                message: "No images found",
+            });
+            return;
+        }
 
         createGallery(hits);
-        
-        const totalPages = Math.ceil(totalHits / limit);
+        checkLoadMoreButton();
 
-        if (page < totalPages) {
-            showLoadMoreButton();
-        }
+        handleScroll();
+        
         
     } catch(error) {
         console.log(error);
@@ -82,19 +87,12 @@ loadMoreBtn.addEventListener("click", async () => {
             hideLoadMoreButton();
             return;
         }
-        console.log("Rendering gallery with hits:", hits);
-
 
         createGallery(hits);
+        checkLoadMoreButton();
 
-        const totalPages = Math.ceil(totalHits / limit);
-        if(page >= totalPages){
-            hideLoadMoreButton();
-            iziToast.success({
-                title: "No more results",
-                message: "All images have been loaded",
-            });
-        }
+        handleScroll();
+      
     } catch (error){
         console.log("Error:", error);
         
@@ -107,4 +105,26 @@ loadMoreBtn.addEventListener("click", async () => {
     }
 });
 
+function checkLoadMoreButton(){
+    const totalPages = Math.ceil(totalHits / limit);
+
+    if(page < totalPages){
+        showLoadMoreButton();
+    } else {
+        hideLoadMoreButton();
+        iziToast.success({
+            title: "End of results",
+            message: "All pictures have been loaded",
+        });
+    }
+}
+
+function handleScroll() {
+    const lastImage = document.querySelector(".gallery")?.lastElementChild;
+    if (lastImage) {
+        setTimeout(() => {
+            lastImage.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 700); 
+    }
+}
 

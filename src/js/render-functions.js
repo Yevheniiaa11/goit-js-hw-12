@@ -9,7 +9,7 @@ const lightbox = new SimpleLightbox(".gallery a", {
 export function createGallery(images){
 
     const gallery = document.querySelector(".gallery");
-    gallery.innerHTML = "";
+    
 
     const markup = images
        .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
